@@ -34,7 +34,7 @@ def accept_move(H_old, H_new, T):
     else:
         return random.uniform(0, 1) < math.exp(-(H_new - H_old) / T)
 
-def animate_points(points_sequence, out_file='polygon.mp4'):
+def animate_points(points_sequence, out_file='output/polygon.mp4'):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.set_xlim(-1.5, 1.5)
@@ -62,7 +62,7 @@ def main():
     area_weight = 1
     perimeter_weight = 1
     temperature = .1
-    out_file = 'polygon.mp4'
+    out_file = 'output/polygon.mp4'
 
     for i in range(1000):
         print(i)
