@@ -3,6 +3,9 @@ import math
 import random
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from stl import mesh
+from mpl_toolkits import mplot3d
+import numpy as np
 
 
 def perimeter(points):
@@ -53,6 +56,29 @@ def animate_points(points_sequence, out_file='output/polygon.mp4'):
     anim = animation.FuncAnimation(fig, animate, init_func=init, frames=len(points_sequence), interval=20, blit=True)
     anim.save(out_file, fps=30, extra_args=['-vcodec', 'libx264'])
 
+def animate_points_as_polygon(points_sequence, out_file='output/polygon.mp4'):
+    """
+    Makes an animation of the polygon as it evolves over time.
+    Uses matplotlib fill to create a filled polygon in each frame.
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.set_xlim(-1.5, 1.5)
+    ax.set_ylim(-1.5, 1.5)
+    ax.set_aspect('equal')
+    ax.set_title('Polygon')
+    polygon = plt.Polygon(points_sequence[0], fill=True)
+    ax.add_patch(polygon)
+    def init():
+        polygon.set_xy([(0,0)])
+        return polygon,
+    def animate(i):
+        polygon.set_xy(points_sequence[i])
+        return polygon,
+    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=len(points_sequence), interval=20, blit=True)
+    anim.save(out_file, fps=30, extra_args=['-vcodec', 'libx264'])
+
+
 def main():
     points = generate_circular_points(100, 1)
     points_sequence = [points]
@@ -62,9 +88,9 @@ def main():
     area_weight = 1
     perimeter_weight = 1
     temperature = .1
-    out_file = 'output/polygon.mp4'
+    out_file = 'output/polygon4'
 
-    for i in range(1000):
+    for i in range(100):
         print(i)
         for i, point in enumerate(points):
             point = jiggle_point(point, 0.1)
@@ -76,8 +102,8 @@ def main():
                 points = points_new
         points_sequence.append(points)
 
-    animate_points(points_sequence, out_file=out_file)
-
+    animate_points_as_polygon(points_sequence, out_file=f"{out_file}.mp4")
+    points_sequence_to_3d_plot(points_sequence, outfile=f"{out_file}.stl")
 
 
 
