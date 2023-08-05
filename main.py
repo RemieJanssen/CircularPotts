@@ -78,6 +78,24 @@ def animate_points_as_polygon(points_sequence, out_file='output/polygon.mp4'):
     anim = animation.FuncAnimation(fig, animate, init_func=init, frames=len(points_sequence), interval=20, blit=True)
     anim.save(out_file, fps=30, extra_args=['-vcodec', 'libx264'])
 
+def points_sequence_to_3d_plot(points_sequence, outfile='output/polygon3.stl'):
+    """
+    Converts a sequence of 2d polygons to a 3d polygon, where the z coordinate is the index of the point in the sequence.
+    Output format is 3d printable file in STL format.
+    """
+    # Create the mesh
+    vertices = np.array(points_sequence)
+    faces = np.array([range(len(points_sequence))])
+    # Create the mesh
+    mesh = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
+    for i, f in enumerate(faces):
+        for j in range(3):
+            mesh.vectors[i][j] = vertices[f[j],:]
+    # Write the mesh to file
+    mesh.save(outfile)
+
+
+
 
 def main():
     points = generate_circular_points(100, 1)
