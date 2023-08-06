@@ -29,3 +29,31 @@ def delta_perimeter(points, i, new_point):
         new_point, point_i_plus_one
     )
     return new_length - previous_length
+
+
+def squared_sum_of_length_difference(points, target_length):
+    """
+    Returns the sum of the squared lengths of a polygon.
+    """
+    all_pairs = [(points[i - 1], points[i]) for i in range(len(points))]
+    lengths = [distance(*pair) for pair in all_pairs]
+    return sum([(length - target_length) ** 2 for length in lengths]) / len(points)
+
+
+def delta_squared_sum_of_length_difference(points, i, new_point, target_length):
+    """
+    Returns the change in the sum of the squared lengths of a polygon from moving the ith point to new_point.
+    """
+    point_i_minus_one = points[i - 1]
+    point_i_plus_one = points[(i + 1) % len(points)]
+    previous_lengths = [
+        distance(point_i_minus_one, points[i]),
+        distance(points[i], point_i_plus_one),
+    ]
+    new_lengths = [
+        distance(point_i_minus_one, new_point),
+        distance(new_point, point_i_plus_one),
+    ]
+    previous_sum = sum([(length - target_length) ** 2 for length in previous_lengths])
+    new_sum = sum([(length - target_length) ** 2 for length in new_lengths])
+    return (new_sum - previous_sum) / len(points)

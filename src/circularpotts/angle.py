@@ -65,4 +65,4 @@ def delta_squared_sum_of_angles(points, i, new_point):
     previous_sum = sum([(angle / math.pi - 1) ** 2 for angle in previous_angles])
     new_sum = sum([(angle / math.pi - 1) ** 2 for angle in new_angles])
 
-    return (new_sum - previous_sum) / 3
+    return (new_sum - previous_sum) / len(points)

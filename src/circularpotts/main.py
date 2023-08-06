@@ -15,6 +15,7 @@ from circularpotts.hamiltonian import (
     accept_move_delta,
     all_values,
 )
+from circularpotts.perimeter import perimeter
 
 
 def generate_circular_points(n, radius):
@@ -74,7 +75,11 @@ def points_sequence_to_3d_mesh(points_sequence, outfile="output/polygon.stl", he
     """
     # add z coordinate
     points_sequence = [
-        [(point[0], point[1], height*float(i)/len(points_sequence)) for point in points] for i, points in enumerate(points_sequence)
+        [
+            (point[0], point[1], height * float(i) / len(points_sequence))
+            for point in points
+        ]
+        for i, points in enumerate(points_sequence)
     ]
     # Create the mesh
     vertices = np.array(points_sequence)
@@ -82,7 +87,7 @@ def points_sequence_to_3d_mesh(points_sequence, outfile="output/polygon.stl", he
     faces = np.array(range(number_of_squares * 2))
     # Create the mesh
     _mesh = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
-    for polygon_index in range(len(points_sequence)-1):
+    for polygon_index in range(len(points_sequence) - 1):
         for point_index in range(len(points_sequence[0])):
             i = polygon_index
             j = point_index
@@ -119,11 +124,15 @@ def simulate(
     angles_weight=1,
     temperature=0.1,
     jiggle_radius=0.02,
+    length_target=None,
+    length_weight=1,
     animate=True,
     mesh=True,
 ):
     points = generate_circular_points(number_of_points, 1)
-    values = all_values(points)
+    length_target = perimeter_target * perimeter(points) / len(points)
+
+    values = all_values(points, length_target=length_target)
 
     area_target = area_target * values["area"]
     perimeter_target = perimeter_target * values["perimeter"]
@@ -146,6 +155,9 @@ def simulate(
                 values["area"],
                 angles_weight,
                 values["angles"],
+                length_weight,
+                length_target,
+                values["length"],
             )
             if accept_move_delta(delta_H, temperature):
                 points_new = points.copy()
@@ -161,7 +173,9 @@ def simulate(
             points_sequence, out_file=os.path.join(out_folder, "animation.mp4")
         )
     if mesh:
-        points_sequence_to_3d_mesh(points_sequence, outfile=os.path.join(out_folder, "mesh.stl"))
+        points_sequence_to_3d_mesh(
+            points_sequence, outfile=os.path.join(out_folder, "mesh.stl")
+        )
 
 
 def parse_args():
@@ -199,28 +213,40 @@ def parse_args():
         "--area_weight",
         type=float,
         help="weight of the area term in the Hamiltonian",
-        default=1,
+        default=0.6,
     )
     parser.add_argument(
         "--perimeter_target",
         type=float,
         help="target perimeter of the polygon as a multiple of the starting perimeter",
-        default=1,
+        default=2,
     )
     parser.add_argument(
         "--perimeter_weight",
         type=float,
         help="weight of the perimeter term in the Hamiltonian",
-        default=1,
+        default=0,
     )
     parser.add_argument(
         "--angles_weight",
         type=float,
         help="weight of the angles term in the Hamiltonian",
-        default=1,
+        default=2000,
     )
     parser.add_argument(
-        "--temperature", type=float, help="temperature of the simulation", default=0.1
+        "--length_target",
+        type=float,
+        help="target length of the polygon as a multiple of the starting length",
+        default=6,
+    )
+    parser.add_argument(
+        "--length_weight",
+        type=float,
+        help="weight of the length term in the Hamiltonian",
+        default=10,
+    )
+    parser.add_argument(
+        "--temperature", type=float, help="temperature of the simulation", default=0.05
     )
     parser.add_argument(
         "--jiggle_radius", type=float, help="radius of the jiggle move", default=0.02
