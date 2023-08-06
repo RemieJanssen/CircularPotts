@@ -76,7 +76,6 @@ def points_sequence_to_3d_mesh(points_sequence, outfile="output/polygon.stl", he
     points_sequence = [
         [(point[0], point[1], height*float(i)/len(points_sequence)) for point in points] for i, points in enumerate(points_sequence)
     ]
-    print(points_sequence)
     # Create the mesh
     vertices = np.array(points_sequence)
     number_of_squares = (len(points_sequence) - 1) * len(points_sequence[0])
