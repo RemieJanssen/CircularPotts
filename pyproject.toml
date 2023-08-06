@@ -1,0 +1,39 @@
+[build-system]
+requires = [
+    "setuptools>=61.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "circularpotts"
+version = "0.0.1"
+authors = [
+  { name="Remie Janssen", email="remiejanssen92@gmail.com" },
+  { name="Leonie van Steijn", email="leonievansteijn@gmail.com" }
+]
+description = "A simulation of a 'circular potts model'."
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+  "shapely>=2.0.1",
+  "numpy>=1.21.6",
+  "matplotlib>=3.5",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  ".", "src",
+]
+addopts = "--cov --cov-report term-missing --doctest-modules"
+
+[project.urls]
+"Homepage" = "https://github.com/RemieJanssen/CircularPotts"
+"Bug Tracker" = "https://github.com/RemieJanssen/CircularPotts/issues"
+
+[project.scripts]
+circularpotts = "circularpotts.main:main"
