@@ -5,47 +5,66 @@ import matplotlib.animation as animation
 from stl import mesh
 from mpl_toolkits import mplot3d
 import numpy as np
-import json 
+import json
 import argparse
 import os
 
-from circularpotts.hamiltonian import hamiltonian, delta_hamiltonian, accept_move_delta, all_values
-
-
+from circularpotts.hamiltonian import (
+    hamiltonian,
+    delta_hamiltonian,
+    accept_move_delta,
+    all_values,
+)
 
 
 def generate_circular_points(n, radius):
     points = []
     for i in range(n):
-        points.append((radius * math.cos(2 * math.pi * i / n), radius * math.sin(2 * math.pi * i / n)))
+        points.append(
+            (
+                radius * math.cos(2 * math.pi * i / n),
+                radius * math.sin(2 * math.pi * i / n),
+            )
+        )
     return points
+
 
 def jiggle_point(point, radius):
     x, y = point
     return (x + random.uniform(-radius, radius), y + random.uniform(-radius, radius))
 
 
-
-def animate_points(points_sequence, out_file='output/polygon.mp4'):
+def animate_points(points_sequence, out_file="output/polygon.mp4"):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.set_xlim(-1.5, 1.5)
     ax.set_ylim(-1.5, 1.5)
-    ax.set_aspect('equal')
-    ax.set_title('Polygon')
-    line, = ax.plot([], [], 'o-')
+    ax.set_aspect("equal")
+    ax.set_title("Polygon")
+    (line,) = ax.plot([], [], "o-")
+
     def init():
         line.set_data([], [])
-        return line,
+        return (line,)
+
     def animate(i):
         x = [point[0] for point in points_sequence[i]]
         y = [point[1] for point in points_sequence[i]]
         line.set_data(x, y)
-        return line,
-    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=len(points_sequence), interval=20, blit=True)
-    anim.save(out_file, fps=30, extra_args=['-vcodec', 'libx264'])
+        return (line,)
 
-def animate_points_as_polygon(points_sequence, out_file='output/polygon.mp4'):
+    anim = animation.FuncAnimation(
+        fig,
+        animate,
+        init_func=init,
+        frames=len(points_sequence),
+        interval=20,
+        blit=True,
+    )
+    anim.save(out_file, fps=30, extra_args=["-vcodec", "libx264"])
+
+
+def animate_points_as_polygon(points_sequence, out_file="output/polygon.mp4"):
     """
     Makes an animation of the polygon as it evolves over time.
     Uses matplotlib fill to create a filled polygon in each frame.
@@ -54,20 +73,31 @@ def animate_points_as_polygon(points_sequence, out_file='output/polygon.mp4'):
     ax = fig.add_subplot(111)
     ax.set_xlim(-1.5, 1.5)
     ax.set_ylim(-1.5, 1.5)
-    ax.set_aspect('equal')
-    ax.set_title('Polygon')
+    ax.set_aspect("equal")
+    ax.set_title("Polygon")
     polygon = plt.Polygon(points_sequence[0], fill=True)
     ax.add_patch(polygon)
+
     def init():
-        polygon.set_xy([(0,0)])
-        return polygon,
+        polygon.set_xy([(0, 0)])
+        return (polygon,)
+
     def animate(i):
         polygon.set_xy(points_sequence[i])
-        return polygon,
-    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=len(points_sequence), interval=20, blit=True)
-    anim.save(out_file, fps=30, extra_args=['-vcodec', 'libx264'])
+        return (polygon,)
 
-def points_sequence_to_3d_plot(points_sequence, outfile='output/polygon.stl'):
+    anim = animation.FuncAnimation(
+        fig,
+        animate,
+        init_func=init,
+        frames=len(points_sequence),
+        interval=20,
+        blit=True,
+    )
+    anim.save(out_file, fps=30, extra_args=["-vcodec", "libx264"])
+
+
+def points_sequence_to_3d_plot(points_sequence, outfile="output/polygon.stl"):
     """
     Converts a sequence of 2d polygons to a 3d polygon, where the z coordinate is the index of the point in the sequence.
     Output format is 3d printable file in STL format.
@@ -79,10 +109,9 @@ def points_sequence_to_3d_plot(points_sequence, outfile='output/polygon.stl'):
     mesh = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
     for i, f in enumerate(faces):
         for j in range(3):
-            mesh.vectors[i][j] = vertices[f[j],:]
+            mesh.vectors[i][j] = vertices[f[j], :]
     # Write the mesh to file
     mesh.save(outfile)
-
 
 
 def shuffled_enumerate_generator(l):
@@ -94,12 +123,26 @@ def shuffled_enumerate_generator(l):
     for i in indices:
         yield i, l[i]
 
-def simulate(number_of_points, steps, out_folder, area_target=None, area_weight=1, perimeter_target=1, perimeter_weight=1, angles_weight=1, temperature=.1, jiggle_radius=.02, animate=True, mesh=True):
+
+def simulate(
+    number_of_points,
+    steps,
+    out_folder,
+    area_target=None,
+    area_weight=1,
+    perimeter_target=1,
+    perimeter_weight=1,
+    angles_weight=1,
+    temperature=0.1,
+    jiggle_radius=0.02,
+    animate=True,
+    mesh=True,
+):
     points = generate_circular_points(number_of_points, 1)
     values = all_values(points)
 
-    area_target = area_target * values['area']
-    perimeter_target = perimeter_target * values['perimeter']
+    area_target = area_target * values["area"]
+    perimeter_target = perimeter_target * values["perimeter"]
 
     points_sequence = [points]
 
@@ -107,7 +150,19 @@ def simulate(number_of_points, steps, out_folder, area_target=None, area_weight=
         print(i)
         for i, point in shuffled_enumerate_generator(points):
             point = jiggle_point(point, jiggle_radius)
-            delta_H, new_values = delta_hamiltonian(points, i, point, perimeter_weight, perimeter_target, values['perimeter'], area_weight, area_target, values['area'], angles_weight, values['angles'])
+            delta_H, new_values = delta_hamiltonian(
+                points,
+                i,
+                point,
+                perimeter_weight,
+                perimeter_target,
+                values["perimeter"],
+                area_weight,
+                area_target,
+                values["area"],
+                angles_weight,
+                values["angles"],
+            )
             if accept_move_delta(delta_H, temperature):
                 points_new = points.copy()
                 points_new[i] = point
@@ -116,36 +171,99 @@ def simulate(number_of_points, steps, out_folder, area_target=None, area_weight=
         points_sequence.append(points)
 
     # save points to file
-    json.dump(points_sequence, open(os.path.join(out_folder, "points.json"), 'w'))
+    json.dump(points_sequence, open(os.path.join(out_folder, "points.json"), "w"))
     if animate:
-        animate_points_as_polygon(points_sequence, out_file=os.path.join(out_folder, "animation.mp4"))
+        animate_points_as_polygon(
+            points_sequence, out_file=os.path.join(out_folder, "animation.mp4")
+        )
     if mesh:
         pass
         # points_sequence_to_3d_plot(points_sequence, outfile=f"{out_folder}_mesh.stl")
 
 
-
 def parse_args():
-    parser = argparse.ArgumentParser(description='Run the circular Potts model.')
-    parser.add_argument('-n', '--number_of_points', dest='number_of_points', type=int, help='number of points in the polygon')
-    parser.add_argument('-s', '--steps', dest='steps', type=int, help='number of steps to run the simulation for')
-    parser.add_argument('-o', '--outfolder', dest='out_folder', type=str, help='output file name')
-    parser.add_argument('--animate', action='store_true', help='whether to animate the polygon')
-    parser.add_argument('--mesh', action='store_true', help='whether to create a 3d mesh of the polygon')
-    parser.add_argument('--area_target', type=float, help='target area of the polygon as a multiple of the starting area', default=1)
-    parser.add_argument('--area_weight', type=float, help='weight of the area term in the Hamiltonian', default=1)
-    parser.add_argument('--perimeter_target', type=float, help='target perimeter of the polygon as a multiple of the starting perimeter', default=1)
-    parser.add_argument('--perimeter_weight', type=float, help='weight of the perimeter term in the Hamiltonian', default=1)
-    parser.add_argument('--angles_weight', type=float, help='weight of the angles term in the Hamiltonian', default=1)
-    parser.add_argument('--temperature', type=float, help='temperature of the simulation', default=.1)
-    parser.add_argument('--jiggle_radius', type=float, help='radius of the jiggle move', default=.02) 
+    parser = argparse.ArgumentParser(description="Run the circular Potts model.")
+    parser.add_argument(
+        "-n",
+        "--number_of_points",
+        dest="number_of_points",
+        type=int,
+        help="number of points in the polygon",
+    )
+    parser.add_argument(
+        "-s",
+        "--steps",
+        dest="steps",
+        type=int,
+        help="number of steps to run the simulation for",
+    )
+    parser.add_argument(
+        "-o", "--outfolder", dest="out_folder", type=str, help="output file name"
+    )
+    parser.add_argument(
+        "--animate", action="store_true", help="whether to animate the polygon"
+    )
+    parser.add_argument(
+        "--mesh", action="store_true", help="whether to create a 3d mesh of the polygon"
+    )
+    parser.add_argument(
+        "--area_target",
+        type=float,
+        help="target area of the polygon as a multiple of the starting area",
+        default=1,
+    )
+    parser.add_argument(
+        "--area_weight",
+        type=float,
+        help="weight of the area term in the Hamiltonian",
+        default=1,
+    )
+    parser.add_argument(
+        "--perimeter_target",
+        type=float,
+        help="target perimeter of the polygon as a multiple of the starting perimeter",
+        default=1,
+    )
+    parser.add_argument(
+        "--perimeter_weight",
+        type=float,
+        help="weight of the perimeter term in the Hamiltonian",
+        default=1,
+    )
+    parser.add_argument(
+        "--angles_weight",
+        type=float,
+        help="weight of the angles term in the Hamiltonian",
+        default=1,
+    )
+    parser.add_argument(
+        "--temperature", type=float, help="temperature of the simulation", default=0.1
+    )
+    parser.add_argument(
+        "--jiggle_radius", type=float, help="radius of the jiggle move", default=0.02
+    )
     return parser.parse_args()
+
 
 def main():
     args = parse_args()
     if not os.path.exists(args.out_folder):
         os.makedirs(args.out_folder)
-    simulate(args.number_of_points, args.steps, args.out_folder, args.area_target, args.area_weight, args.perimeter_target, args.perimeter_weight, args.angles_weight, args.temperature, args.jiggle_radius, args.animate, args.mesh)
+    simulate(
+        args.number_of_points,
+        args.steps,
+        args.out_folder,
+        args.area_target,
+        args.area_weight,
+        args.perimeter_target,
+        args.perimeter_weight,
+        args.angles_weight,
+        args.temperature,
+        args.jiggle_radius,
+        args.animate,
+        args.mesh,
+    )
+
 
 if __name__ == "__main__":
     main()
