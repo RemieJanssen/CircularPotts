@@ -34,36 +34,6 @@ def jiggle_point(point, radius):
     return (x + random.uniform(-radius, radius), y + random.uniform(-radius, radius))
 
 
-def animate_points(points_sequence, out_file="output/polygon.mp4"):
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.set_xlim(-1.5, 1.5)
-    ax.set_ylim(-1.5, 1.5)
-    ax.set_aspect("equal")
-    ax.set_title("Polygon")
-    (line,) = ax.plot([], [], "o-")
-
-    def init():
-        line.set_data([], [])
-        return (line,)
-
-    def animate(i):
-        x = [point[0] for point in points_sequence[i]]
-        y = [point[1] for point in points_sequence[i]]
-        line.set_data(x, y)
-        return (line,)
-
-    anim = animation.FuncAnimation(
-        fig,
-        animate,
-        init_func=init,
-        frames=len(points_sequence),
-        interval=20,
-        blit=True,
-    )
-    anim.save(out_file, fps=30, extra_args=["-vcodec", "libx264"])
-
-
 def animate_points_as_polygon(points_sequence, out_file="output/polygon.mp4"):
     """
     Makes an animation of the polygon as it evolves over time.
@@ -97,21 +67,36 @@ def animate_points_as_polygon(points_sequence, out_file="output/polygon.mp4"):
     anim.save(out_file, fps=30, extra_args=["-vcodec", "libx264"])
 
 
-def points_sequence_to_3d_plot(points_sequence, outfile="output/polygon.stl"):
+def points_sequence_to_3d_mesh(points_sequence, outfile="output/polygon.stl", height=2):
     """
     Converts a sequence of 2d polygons to a 3d polygon, where the z coordinate is the index of the point in the sequence.
     Output format is 3d printable file in STL format.
     """
+    # add z coordinate
+    points_sequence = [
+        [(point[0], point[1], height*float(i)/len(points_sequence)) for point in points] for i, points in enumerate(points_sequence)
+    ]
+    print(points_sequence)
     # Create the mesh
     vertices = np.array(points_sequence)
-    faces = np.array([range(len(points_sequence))])
+    number_of_squares = (len(points_sequence) - 1) * len(points_sequence[0])
+    faces = np.array(range(number_of_squares * 2))
     # Create the mesh
-    mesh = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
-    for i, f in enumerate(faces):
-        for j in range(3):
-            mesh.vectors[i][j] = vertices[f[j], :]
+    _mesh = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
+    for polygon_index in range(len(points_sequence)-1):
+        for point_index in range(len(points_sequence[0])):
+            i = polygon_index
+            j = point_index
+            f1 = 2 * (i * len(points_sequence[0]) + j)
+            f2 = 2 * (i * len(points_sequence[0]) + j) + 1
+            _mesh.vectors[f1][0] = vertices[i][j]
+            _mesh.vectors[f1][1] = vertices[i][j - 1]
+            _mesh.vectors[f1][2] = vertices[i + 1][j - 1]
+            _mesh.vectors[f2][0] = vertices[i][j]
+            _mesh.vectors[f2][1] = vertices[i + 1][j - 1]
+            _mesh.vectors[f2][2] = vertices[i + 1][j]
     # Write the mesh to file
-    mesh.save(outfile)
+    _mesh.save(outfile)
 
 
 def shuffled_enumerate_generator(l):
@@ -177,8 +162,7 @@ def simulate(
             points_sequence, out_file=os.path.join(out_folder, "animation.mp4")
         )
     if mesh:
-        pass
-        # points_sequence_to_3d_plot(points_sequence, outfile=f"{out_folder}_mesh.stl")
+        points_sequence_to_3d_mesh(points_sequence, outfile=os.path.join(out_folder, "mesh.stl"))
 
 
 def parse_args():
