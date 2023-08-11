@@ -5,8 +5,10 @@ import random
 from circularpotts.perimeter import (
     perimeter,
     delta_perimeter,
-    squared_sum_of_length_difference,
-    delta_squared_sum_of_length_difference,
+    max_length_deviation,
+    delta_max_length_deviation,
+    # max_length_deviation as squared_sum_of_length_difference,
+    # delta_max_length_deviation as delta_squared_sum_of_length_difference,
 )
 from circularpotts.area import area, delta_area
 from circularpotts.angle import squared_sum_of_angles, delta_squared_sum_of_angles
