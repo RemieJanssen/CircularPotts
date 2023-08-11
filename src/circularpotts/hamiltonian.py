@@ -5,8 +5,8 @@ import random
 from circularpotts.perimeter import (
     perimeter,
     delta_perimeter,
-    max_length_deviation,
-    delta_max_length_deviation,
+    squared_sum_of_length_difference,
+    delta_squared_sum_of_length_difference,
     # max_length_deviation as squared_sum_of_length_difference,
     # delta_max_length_deviation as delta_squared_sum_of_length_difference,
 )
