@@ -128,6 +128,7 @@ def simulate(
     length_weight=1,
     animate=True,
     mesh=True,
+    print_values=False,
 ):
     points = generate_circular_points(number_of_points, 1)
     length_target = perimeter_target * perimeter(points) / len(points)
@@ -159,6 +160,13 @@ def simulate(
                 length_target,
                 values["length"],
             )
+            if print_values:
+                print()
+                print(f"delta Hamiltonian: {delta_H}")
+                if delta_H != float("inf"):
+                    print("delta values:")
+                    for key, value in new_values.items():
+                        print(f"{key}: {value} - {values[key]} = {value - values[key]}")
             if accept_move_delta(delta_H, temperature):
                 points_new = points.copy()
                 points_new[i] = point
@@ -179,7 +187,10 @@ def simulate(
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run the circular Potts model.")
+    parser = argparse.ArgumentParser(
+        description="Run the circular Potts model.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument(
         "-n",
         "--number_of_points",
@@ -251,6 +262,11 @@ def parse_args():
     parser.add_argument(
         "--jiggle_radius", type=float, help="radius of the jiggle move", default=0.02
     )
+    parser.add_argument(
+        "--print_values",
+        action="store_true",
+        help="whether to print the values of the delta-Hamiltonian terms",
+    )
     return parser.parse_args()
 
 
@@ -262,15 +278,18 @@ def main():
         args.number_of_points,
         args.steps,
         args.out_folder,
-        args.area_target,
-        args.area_weight,
-        args.perimeter_target,
-        args.perimeter_weight,
-        args.angles_weight,
-        args.temperature,
-        args.jiggle_radius,
-        args.animate,
-        args.mesh,
+        area_target=args.area_target,
+        area_weight=args.area_weight,
+        perimeter_target=args.perimeter_target,
+        perimeter_weight=args.perimeter_weight,
+        angles_weight=args.angles_weight,
+        temperature=args.temperature,
+        jiggle_radius=args.jiggle_radius,
+        length_target=args.length_target,
+        length_weight=args.length_weight,
+        animate=args.animate,
+        mesh=args.mesh,
+        print_values=args.print_values,
     )
 
 
