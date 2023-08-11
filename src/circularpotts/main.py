@@ -186,10 +186,15 @@ def simulate(
         )
 
 
+def save_args_to_file(filename, args):
+    with open(filename, "w") as f:
+        json.dump(vars(args), f)
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Run the circular Potts model.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         "-n",
@@ -274,6 +279,7 @@ def main():
     args = parse_args()
     if not os.path.exists(args.out_folder):
         os.makedirs(args.out_folder)
+    save_args_to_file(os.path.join(args.out_folder, "args.json"), args)
     simulate(
         args.number_of_points,
         args.steps,
